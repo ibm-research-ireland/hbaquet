@@ -51,6 +51,14 @@ module Hbase
     end
 
     #----------------------------------------------------------------------------------------------
+    # Requests a table export to parquet
+    def exportToParquet(table)
+      begin
+        @admin.exportToParquet(TableName.valueOf(table));
+      end
+    end
+
+    #----------------------------------------------------------------------------------------------
     # Requests a table or region or region server flush
     def flush(name)
       @admin.flushRegion(name.to_java_bytes)
@@ -1244,6 +1252,7 @@ module Hbase
       htd.setRegionMemstoreReplication(JBoolean.valueOf(arg.delete(org.apache.hadoop.hbase.HTableDescriptor::REGION_MEMSTORE_REPLICATION))) if arg.include?(org.apache.hadoop.hbase.HTableDescriptor::REGION_MEMSTORE_REPLICATION)
       htd.setRegionSplitPolicyClassName(arg.delete(org.apache.hadoop.hbase.HTableDescriptor::SPLIT_POLICY)) if arg.include?(org.apache.hadoop.hbase.HTableDescriptor::SPLIT_POLICY)
       htd.setRegionReplication(JInteger.valueOf(arg.delete(org.apache.hadoop.hbase.HTableDescriptor::REGION_REPLICATION))) if arg.include?(org.apache.hadoop.hbase.HTableDescriptor::REGION_REPLICATION)
+      htd.setParquetSchema(arg.delete(org.apache.hadoop.hbase.HTableDescriptor::PARQUET_SCHEMA)) if arg.include?(org.apache.hadoop.hbase.HTableDescriptor::PARQUET_SCHEMA)
       set_user_metadata(htd, arg.delete(METADATA)) if arg[METADATA]
       set_descriptor_config(htd, arg.delete(CONFIGURATION)) if arg[CONFIGURATION]
     end

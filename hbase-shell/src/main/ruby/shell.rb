@@ -335,6 +335,7 @@ Shell.load_command_group(
     close_region
     compact
     flush
+    exportToParquet
     major_compact
     move
     split

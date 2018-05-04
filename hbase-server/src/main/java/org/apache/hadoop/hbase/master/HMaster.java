@@ -122,6 +122,7 @@ import org.apache.hadoop.hbase.master.procedure.DeleteNamespaceProcedure;
 import org.apache.hadoop.hbase.master.procedure.DeleteTableProcedure;
 import org.apache.hadoop.hbase.master.procedure.DisableTableProcedure;
 import org.apache.hadoop.hbase.master.procedure.EnableTableProcedure;
+import org.apache.hadoop.hbase.master.procedure.ExportToParquetProcedure;
 import org.apache.hadoop.hbase.master.procedure.MasterProcedureConstants;
 import org.apache.hadoop.hbase.master.procedure.MasterProcedureEnv;
 import org.apache.hadoop.hbase.master.procedure.MasterProcedureScheduler;
@@ -211,6 +212,7 @@ import org.apache.hbase.thirdparty.com.google.common.collect.Lists;
 import org.apache.hbase.thirdparty.com.google.common.collect.Maps;
 
 import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.AdminService.BlockingInterface;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.GetRegionInfoResponse.CompactionState;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.HBaseProtos.RegionServerInfo;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.QuotaProtos.Quotas;
@@ -2392,6 +2394,28 @@ public class HMaster extends HRegionServer implements MasterServices {
         return "ModifyTableProcedure";
       }
     });
+  }
+
+  @Override
+  public long exportToParquet(final TableDescriptor descriptor,final long nonceGroup, final long nonce) throws IOException {
+
+
+    return MasterProcedureUtil.submitProcedure(
+            new MasterProcedureUtil.NonceProcedureRunnable(this, nonceGroup, nonce) {
+              @Override
+              protected void run() throws IOException {
+                long procId = getMasterProcedureExecutor().submitProcedure(
+                        new ExportToParquetProcedure(
+                                getMasterProcedureExecutor().getEnvironment(),descriptor),
+                        getNonceKey());
+                setProcId(procId);
+              }
+
+              @Override
+              protected String getDescription() {
+                return "ExportToParquetProcedure";
+              }
+            });
   }
 
   public long restoreSnapshot(final SnapshotDescription snapshotDesc,

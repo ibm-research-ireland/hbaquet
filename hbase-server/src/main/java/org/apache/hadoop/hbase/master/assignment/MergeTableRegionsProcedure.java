@@ -28,7 +28,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.HRegionLocation;
 import org.apache.hadoop.hbase.MetaMutationAnnotation;
+import org.apache.hadoop.hbase.MetaTableAccessor;
 import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.UnknownRegionException;
@@ -42,6 +44,7 @@ import org.apache.hadoop.hbase.client.RegionReplicaUtil;
 import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.hbase.exceptions.MergeRegionException;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
+import org.apache.hadoop.hbase.ipc.HBaseRpcController;
 import org.apache.hadoop.hbase.master.CatalogJanitor;
 import org.apache.hadoop.hbase.master.MasterCoprocessorHost;
 import org.apache.hadoop.hbase.master.MasterFileSystem;
@@ -57,16 +60,21 @@ import org.apache.hadoop.hbase.quotas.QuotaExceededException;
 import org.apache.hadoop.hbase.regionserver.HRegionFileSystem;
 import org.apache.hadoop.hbase.regionserver.HStoreFile;
 import org.apache.hadoop.hbase.regionserver.StoreFileInfo;
+import org.apache.hadoop.hbase.shaded.protobuf.RequestConverter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.hbase.util.FSUtils;
 import org.apache.hadoop.hbase.wal.WALSplitter;
+import org.apache.hbase.thirdparty.com.google.protobuf.ServiceException;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hbase.thirdparty.com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearRegionFromParquetRequest;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ExportRegionToParquetRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.GetRegionInfoResponse;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.HBaseProtos.RegionSpecifier;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProcedureProtos;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProcedureProtos.MergeTableRegionsState;
 
@@ -228,6 +236,21 @@ public class MergeTableRegionsProcedure
             assert isFailed() : "Merge region should have an exception here";
             return Flow.NO_MORE_STATE;
           }
+          for(RegionInfo regionInfo : regionsToMerge){
+            HBaseRpcController controller = env.getMasterServices().getClusterConnection().getRpcControllerFactory().newController();
+            HRegionLocation parentLocation = MetaTableAccessor.getRegionLocation(env.getMasterServices().getConnection(),regionInfo);
+            RegionSpecifier parentRegionSpecifier = RequestConverter.buildRegionSpecifier(
+                    RegionSpecifier.RegionSpecifierType.REGION_NAME,parentLocation.getRegion().getRegionName());
+            ClearRegionFromParquetRequest clearRegionFromParquetRequest
+                    = ClearRegionFromParquetRequest.newBuilder().setRegion(parentRegionSpecifier).build();
+            try {
+              env.getMasterServices().getServerManager().getRsAdmin(parentLocation.getServerName())
+                      .clearRegionFromParquet(controller,clearRegionFromParquetRequest);
+            } catch (ServiceException e) {
+              e.printStackTrace();
+            }
+            LOG.info("Region to be merged: "+parentLocation.getRegion()+" cleaned from Parquet");
+          }
           setNextState(MergeTableRegionsState.MERGE_TABLE_REGIONS_PRE_MERGE_OPERATION);
           break;
         case MERGE_TABLE_REGIONS_PRE_MERGE_OPERATION:
@@ -264,6 +287,17 @@ public class MergeTableRegionsProcedure
           break;
         case MERGE_TABLE_REGIONS_POST_OPERATION:
           postCompletedMergeRegions(env);
+          HBaseRpcController controller = env.getMasterServices().getClusterConnection().getRpcControllerFactory().newController();
+          HRegionLocation location1 = MetaTableAccessor.getRegionLocation(env.getMasterServices().getConnection(),mergedRegion);
+          RegionSpecifier regionSpecifier = RequestConverter.buildRegionSpecifier(
+                  RegionSpecifier.RegionSpecifierType.REGION_NAME,location1.getRegion().getRegionName());
+          ExportRegionToParquetRequest request = ExportRegionToParquetRequest.newBuilder().setRegion(regionSpecifier).build();
+          try {
+            env.getMasterServices().getServerManager().getRsAdmin(location1.getServerName()).exportRegionToParquet(controller,request);
+          } catch (ServiceException e) {
+            e.printStackTrace();
+          }
+          LOG.info("New Created Region: "+location1.getRegion()+" exported toParquet");
           return Flow.NO_MORE_STATE;
         default:
           throw new UnsupportedOperationException(this + " unhandled state=" + state);

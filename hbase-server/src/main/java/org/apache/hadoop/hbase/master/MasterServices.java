@@ -215,6 +215,11 @@ public interface MasterServices extends Server {
       final long nonce)
       throws IOException;
 
+  long exportToParquet(
+          final TableDescriptor descriptor,
+          final long nonceGroup,
+          final long nonce)
+          throws IOException;
   /**
    * Enable an existing table
    * @param tableName The table name

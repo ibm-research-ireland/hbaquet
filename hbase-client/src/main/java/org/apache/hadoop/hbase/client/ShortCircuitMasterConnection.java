@@ -54,6 +54,8 @@ import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.EnableTabl
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.EnableTableResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.ExecProcedureRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.ExecProcedureResponse;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.ExportToParquetRequest;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.ExportToParquetResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.GetClusterStatusRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.GetClusterStatusResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.GetCompletedSnapshotsRequest;
@@ -631,6 +633,11 @@ public class ShortCircuitMasterConnection implements MasterKeepAliveConnection {
   public ClearDeadServersResponse clearDeadServers(RpcController controller,
       ClearDeadServersRequest request) throws ServiceException {
     return stub.clearDeadServers(controller, request);
+  }
+
+  @Override
+  public ExportToParquetResponse exportToParquet(RpcController controller, ExportToParquetRequest request) throws ServiceException {
+    return stub.exportToParquet(controller,request);
   }
 
   @Override

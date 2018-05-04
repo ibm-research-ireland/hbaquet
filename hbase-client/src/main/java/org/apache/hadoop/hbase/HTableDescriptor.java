@@ -52,6 +52,7 @@ import org.apache.yetus.audience.InterfaceAudience;
 @InterfaceAudience.Public
 public class HTableDescriptor implements TableDescriptor, Comparable<HTableDescriptor> {
   public static final String SPLIT_POLICY = TableDescriptorBuilder.SPLIT_POLICY;
+  public static final String PARQUET_SCHEMA = TableDescriptorBuilder.PARQUET_SCHEMA;
   public static final String MAX_FILESIZE = TableDescriptorBuilder.MAX_FILESIZE;
   public static final String OWNER = TableDescriptorBuilder.OWNER;
   public static final Bytes OWNER_KEY = TableDescriptorBuilder.OWNER_KEY;
@@ -233,6 +234,10 @@ public class HTableDescriptor implements TableDescriptor, Comparable<HTableDescr
     return delegatee.isReadOnly();
   }
 
+  @Override
+  public String getParquetSchema() {
+    return delegatee.getParquetSchema();
+  }
   /**
    * Setting the table as read only sets all the columns in the table as read
    * only. By default all tables are modifiable, but if the readOnly flag is
@@ -553,6 +558,11 @@ public class HTableDescriptor implements TableDescriptor, Comparable<HTableDescr
    */
   public HTableDescriptor setRegionReplication(int regionReplication) {
     getDelegateeForModification().setRegionReplication(regionReplication);
+    return this;
+  }
+
+  public HTableDescriptor setParquetSchema(String parquetSchema){
+    getDelegateeForModification().setParquetSchema(parquetSchema);
     return this;
   }
 

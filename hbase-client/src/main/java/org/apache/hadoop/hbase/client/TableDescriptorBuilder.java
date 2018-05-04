@@ -37,6 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.hadoop.hbase.Coprocessor;
 import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.exceptions.DeserializationException;
 import org.apache.hadoop.hbase.security.User;
@@ -81,6 +82,10 @@ public class TableDescriptorBuilder {
   public static final String READONLY = "READONLY";
   private static final Bytes READONLY_KEY
           = new Bytes(Bytes.toBytes(READONLY));
+
+  @InterfaceAudience.Private
+  public static final String PARQUET_SCHEMA = "PARQUET_SCHEMA";
+  public static final Bytes PARQUET_SCHEMA_KEY = new Bytes(Bytes.toBytes(PARQUET_SCHEMA));
 
   /**
    * Used by HBase Shell interface to access this metadata
@@ -204,6 +209,7 @@ public class TableDescriptorBuilder {
     DEFAULT_VALUES.put(REGION_REPLICATION, String.valueOf(DEFAULT_REGION_REPLICATION));
     DEFAULT_VALUES.put(NORMALIZATION_ENABLED, String.valueOf(DEFAULT_NORMALIZATION_ENABLED));
     DEFAULT_VALUES.put(PRIORITY, String.valueOf(DEFAULT_PRIORITY));
+    DEFAULT_VALUES.put(PARQUET_SCHEMA, "");
     DEFAULT_VALUES.keySet().stream()
             .map(s -> new Bytes(Bytes.toBytes(s))).forEach(RESERVED_KEYWORDS::add);
     RESERVED_KEYWORDS.add(IS_META_KEY);
@@ -468,6 +474,11 @@ public class TableDescriptorBuilder {
 
     private final TableName name;
 
+    public String getParquetSchema() { return getOrDefault(PARQUET_SCHEMA_KEY, Function.identity(), null); }
+
+    public ModifyableTableDescriptor setParquetSchema(String parquetSchema) {
+      return setValue(PARQUET_SCHEMA_KEY, parquetSchema);
+    }
     /**
      * A map which holds the metadata information of the table. This metadata
      * includes values like IS_META, SPLIT_POLICY, MAX_FILE_SIZE,

@@ -268,6 +268,7 @@ public interface TableDescriptor {
    */
   boolean isReadOnly();
 
+  String getParquetSchema();
   /**
    * Check if any of the table's cfs' replication scope are set to
    * {@link HConstants#REPLICATION_SCOPE_GLOBAL}.

@@ -283,6 +283,11 @@ public class MockNoopMasterServices implements MasterServices {
   }
 
   @Override
+  public long exportToParquet(TableDescriptor descriptor, long nonceGroup, long nonce) throws IOException {
+    return  -1;
+  }
+
+  @Override
   public long enableTable(
       final TableName tableName,
       final long nonceGroup,

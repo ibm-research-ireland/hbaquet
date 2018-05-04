@@ -143,6 +143,22 @@ message FlushRegionResponse {
   optional bool wrote_flush_wal_marker = 3;
 }
 
+message ExportRegionToParquetRequest {
+  required RegionSpecifier region = 1;
+}
+
+message ExportRegionToParquetResponse {
+    optional bool exported = 1;
+}
+
+message ClearRegionFromParquetRequest {
+  required RegionSpecifier region = 1;
+}
+
+message ClearRegionFromParquetResponse {
+  optional bool cleaned = 1;
+}
+
 /**
  * Compacts the specified region.  Performs a major compaction if specified.
  * <p>
@@ -292,6 +308,12 @@ service AdminService {
 
   rpc FlushRegion(FlushRegionRequest)
     returns(FlushRegionResponse);
+
+  rpc ExportRegionToParquet(ExportRegionToParquetRequest)
+    returns(ExportRegionToParquetResponse);
+
+  rpc ClearRegionFromParquet(ClearRegionFromParquetRequest)
+  returns(ClearRegionFromParquetResponse);
 
   rpc CompactRegion(CompactRegionRequest)
     returns(CompactRegionResponse);

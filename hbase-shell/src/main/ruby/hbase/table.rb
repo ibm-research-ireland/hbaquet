@@ -675,7 +675,7 @@ EOF
     end
 
     # Add the following admin utilities to the table
-    add_admin_utils :enable, :disable, :flush, :drop, :describe, :snapshot
+    add_admin_utils :enable, :disable, :flush, :drop, :describe, :snapshot, :exportToParquet
 
     #----------------------------
     # give the general help for the table

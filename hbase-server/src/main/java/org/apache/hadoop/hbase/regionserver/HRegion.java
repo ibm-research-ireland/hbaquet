@@ -138,6 +138,7 @@ import org.apache.hadoop.hbase.ipc.RpcCall;
 import org.apache.hadoop.hbase.ipc.RpcServer;
 import org.apache.hadoop.hbase.monitoring.MonitoredTask;
 import org.apache.hadoop.hbase.monitoring.TaskMonitor;
+import org.apache.hadoop.hbase.parquet.HBaquetWriter;
 import org.apache.hadoop.hbase.quotas.RegionServerSpaceQuotaManager;
 import org.apache.hadoop.hbase.regionserver.MultiVersionConcurrencyControl.WriteEntry;
 import org.apache.hadoop.hbase.regionserver.ScannerContext.LimitScope;
@@ -8591,5 +8592,64 @@ public class HRegion implements HeapSize, PropagatingConfigurationObserver, Regi
   @Override
   public void requestFlush(FlushLifeCycleTracker tracker) throws IOException {
     requestFlush0(tracker);
+  }
+
+  @Override
+  public void clearParquet() throws IOException{
+    Path regionDir = fs.getRegionDir();
+    if(fs.getFileSystem().exists(regionDir)){
+      Path toDelete = new Path(regionDir+".parquet");
+      if(fs.getFileSystem().exists(toDelete)){
+        fs.getFileSystem().delete(toDelete);
+      }
+    }
+  }
+
+  @Override
+  public void exportToParquet() throws IOException {
+
+    String parquetSchema = getTableDescriptor().getParquetSchema();
+    if(parquetSchema == null){
+        throw new IOException("You need to have a parquet schema for the table");
+    }
+
+    Path regionDir = fs.getRegionDir();
+
+    HBaquetWriter hBaquetWriter;
+    hBaquetWriter = new HBaquetWriter(conf, new Path(regionDir+".parquet.tmp"), parquetSchema);
+
+
+    int compactionKVMax =
+            conf.getInt(HConstants.COMPACTION_KV_MAX, HConstants.COMPACTION_KV_MAX_DEFAULT);
+
+    ScannerContext scannerContext =
+            ScannerContext.newBuilder().setBatchLimit(compactionKVMax).build();
+
+    Scan scan = new Scan();
+    RegionScanner regionScanner = getScanner(scan);
+    List<Cell> kvs = new ArrayList<Cell>();
+    boolean hasMore;
+
+    Path fileToWrite = new Path(regionDir+".parquet");
+    if(fs.getFileSystem().exists(fileToWrite)){
+        fs.getFileSystem().delete(fileToWrite);
+    }
+
+    try {
+      do {
+        hasMore = regionScanner.next(kvs, scannerContext);
+        if (!kvs.isEmpty()) {
+          for (Cell c : kvs) {
+            hBaquetWriter.append(c);
+          }
+          kvs.clear();
+        }
+      } while (hasMore);
+    } catch (Exception e) {
+      throw e;
+    }
+    hBaquetWriter.close();
+    regionScanner.close();
+    fs.getFileSystem().rename(new Path(regionDir+".parquet.tmp"),new Path(regionDir+".parquet"));
   }
 }

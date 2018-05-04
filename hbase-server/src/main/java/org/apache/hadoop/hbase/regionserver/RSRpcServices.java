@@ -159,12 +159,16 @@ import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearCompac
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearCompactionQueuesResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearRegionBlockCacheRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearRegionBlockCacheResponse;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearRegionFromParquetRequest;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ClearRegionFromParquetResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.CloseRegionRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.CloseRegionResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.CompactRegionRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.CompactRegionResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ExecuteProceduresRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ExecuteProceduresResponse;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ExportRegionToParquetRequest;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.ExportRegionToParquetResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.FlushRegionRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.FlushRegionResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.AdminProtos.GetOnlineRegionRequest;
@@ -1705,6 +1709,30 @@ public class RSRpcServices implements HBaseRPCErrorHandler,
     } catch (IOException ie) {
       throw new ServiceException(ie);
     }
+  }
+
+  @Override
+  public ExportRegionToParquetResponse exportRegionToParquet(RpcController controller,ExportRegionToParquetRequest request) throws ServiceException {
+    try {
+      HRegion region = getRegion(request.getRegion());
+      region.exportToParquet();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return ExportRegionToParquetResponse.newBuilder().setExported(false).build();
+    }
+    return ExportRegionToParquetResponse.newBuilder().setExported(true).build();
+  }
+
+  @Override
+  public ClearRegionFromParquetResponse clearRegionFromParquet(RpcController controller, ClearRegionFromParquetRequest request) throws ServiceException {
+    try {
+      HRegion region = getRegion(request.getRegion());
+      region.clearParquet();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return ClearRegionFromParquetResponse.newBuilder().setCleaned(false).build();
+    }
+    return  ClearRegionFromParquetResponse.newBuilder().setCleaned(true).build();
   }
 
   @Override

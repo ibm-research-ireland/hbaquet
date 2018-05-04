@@ -485,6 +485,16 @@ ClientProtos.ClientService.BlockingInterface, RegionServerServices {
   }
 
   @Override
+  public AdminProtos.ExportRegionToParquetResponse exportRegionToParquet(RpcController controller, AdminProtos.ExportRegionToParquetRequest request) throws ServiceException {
+    return null;
+  }
+
+  @Override
+  public AdminProtos.ClearRegionFromParquetResponse clearRegionFromParquet(RpcController controller, AdminProtos.ClearRegionFromParquetRequest request) throws ServiceException {
+    return null;
+  }
+
+  @Override
   public CompactRegionResponse compactRegion(RpcController controller,
       CompactRegionRequest request) throws ServiceException {
     return null;

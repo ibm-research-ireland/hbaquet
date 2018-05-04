@@ -2738,4 +2738,12 @@ public interface Admin extends Abortable, Closeable {
    */
   void cloneTableSchema(final TableName tableName, final TableName newTableName,
       final boolean preserveSplits) throws IOException;
+
+    /**
+     * Exports table to Parquet format
+     * @param tableName the table to be exported
+     * @return
+     * @throws IOException
+     */
+    Future<Void> exportToParquet(final TableName tableName) throws IOException;
 }

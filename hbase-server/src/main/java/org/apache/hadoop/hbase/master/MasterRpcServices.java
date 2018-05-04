@@ -1313,6 +1313,22 @@ public class MasterRpcServices extends RSRpcServices
   }
 
   @Override
+  public MasterProtos.ExportToParquetResponse exportToParquet(RpcController controller,
+                                                              MasterProtos.ExportToParquetRequest req) throws ServiceException {
+    try {
+
+      long procId = master.exportToParquet(
+              ProtobufUtil.toTableDescriptor(req.getTableSchema()),
+              req.getNonceGroup(),req.getNonce());
+      MasterProtos.ExportToParquetResponse response = MasterProtos.ExportToParquetResponse.newBuilder()
+              .setProcId(procId).build();
+      return response;
+    } catch (IOException ioe) {
+      throw new ServiceException(ioe);
+    }
+  }
+
+  @Override
   public MoveRegionResponse moveRegion(RpcController controller,
       MoveRegionRequest req) throws ServiceException {
     final byte [] encodedRegionName = req.getRegion().getValue().toByteArray();

@@ -402,6 +402,16 @@ message SnapshotResponse {
   required int64 expected_timeout = 1;
 }
 
+message ExportToParquetRequest {
+  required TableSchema table_schema = 1;
+  optional uint64 nonce_group = 2 [default = 0];
+  optional uint64 nonce = 3 [default = 0];
+}
+
+message ExportToParquetResponse {
+  optional uint64 proc_id = 1;
+}
+
 message GetCompletedSnapshotsRequest {
 }
 
@@ -985,5 +995,8 @@ service MasterService {
   /** clear dead servers from master*/
   rpc ClearDeadServers(ClearDeadServersRequest)
     returns(ClearDeadServersResponse);
+
+  rpc ExportToParquet(ExportToParquetRequest)
+    returns (ExportToParquetResponse);
 
 }

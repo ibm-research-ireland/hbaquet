@@ -215,7 +215,7 @@ public class MultiThreadedClientExample extends Configured implements Tool {
       // Table implements Closable so we use the try with resource structure here.
       // https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
       try (Table t = connection.getTable(tableName)) {
-        byte[] value = Bytes.toBytes(Double.toString(ThreadLocalRandom.current().nextDouble()));
+        byte[] value = Bytes.toBytes(ThreadLocalRandom.current().nextDouble());
         int rows = 30;
 
         // Array to put the batch

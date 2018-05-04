@@ -250,6 +250,35 @@ public class HBaseAdmin implements Admin {
     return operationTimeout;
   }
 
+  @Override
+  public Future<Void> exportToParquet(TableName tableName) throws IOException {
+
+    if(getTableDescriptor(tableName).getParquetSchema()==null){
+      LOG.error("You need to specify a parquet schema for the table");
+      throw new IOException("You need to specify a parquet schema for the table");
+    }
+
+    executeCallable(new MasterCallable<MasterProtos.ExportToParquetResponse>(getConnection(),getRpcControllerFactory()){
+
+      @Override
+      protected MasterProtos.ExportToParquetResponse rpcCall() throws Exception {
+        MasterProtos.ExportToParquetRequest.Builder builder = MasterProtos.ExportToParquetRequest.newBuilder();
+        builder.setNonceGroup(ng.getNonceGroup());
+        builder.setNonce(ng.newNonce());
+        builder.setTableSchema(ProtobufUtil.toTableSchema(getTableDescriptor(tableName)));
+        MasterProtos.ExportToParquetRequest request = builder.build();
+        return master.exportToParquet(getRpcController(),request);
+      }
+    });
+
+    return new TableFuture<Void>(this,tableName,null) {
+      @Override
+      public String getOperationType() {
+        return "EXPORT_PARQUET";
+      }
+    };
+  }
+
   HBaseAdmin(ClusterConnection connection) throws IOException {
     this.conf = connection.getConfiguration();
     this.connection = connection;

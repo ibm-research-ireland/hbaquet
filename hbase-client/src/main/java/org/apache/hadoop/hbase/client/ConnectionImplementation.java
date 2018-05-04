@@ -94,6 +94,8 @@ import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos.ClientServ
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.DecommissionRegionServersRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.DecommissionRegionServersResponse;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.ExportToParquetRequest;
+import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.ExportToParquetResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.IsBalancerEnabledRequest;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.IsBalancerEnabledResponse;
 import org.apache.hadoop.hbase.shaded.protobuf.generated.MasterProtos.IsNormalizerEnabledRequest;
@@ -1713,6 +1715,11 @@ class ConnectionImplementation implements ClusterConnection, Closeable {
       public MasterProtos.ClearDeadServersResponse clearDeadServers(RpcController controller,
           MasterProtos.ClearDeadServersRequest request) throws ServiceException {
         return stub.clearDeadServers(controller, request);
+      }
+
+      @Override
+      public ExportToParquetResponse exportToParquet(RpcController controller, ExportToParquetRequest request) throws ServiceException {
+        return stub.exportToParquet(controller,request);
       }
     };
   }

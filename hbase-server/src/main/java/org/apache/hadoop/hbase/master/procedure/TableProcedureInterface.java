@@ -30,7 +30,7 @@ import org.apache.yetus.audience.InterfaceStability;
 @InterfaceStability.Evolving
 public interface TableProcedureInterface {
   public enum TableOperationType {
-    CREATE, DELETE, DISABLE, EDIT, ENABLE, READ,
+    CREATE, DELETE, DISABLE, EDIT, ENABLE, EXPORT_PARQUET, READ,
     REGION_EDIT, REGION_SPLIT, REGION_MERGE, REGION_ASSIGN, REGION_UNASSIGN,
       REGION_GC, MERGED_REGIONS_GC/* region operations */
   }

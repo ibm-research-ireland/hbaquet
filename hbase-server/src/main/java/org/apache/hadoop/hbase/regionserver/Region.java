@@ -538,4 +538,8 @@ public interface Region extends ConfigurationObserver {
    * max wait time period.
    */
   boolean waitForFlushes(long timeout);
+
+  void exportToParquet() throws IOException;
+
+  void clearParquet() throws IOException;
 }
